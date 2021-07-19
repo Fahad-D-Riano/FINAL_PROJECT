@@ -12,6 +12,7 @@ Flask==1.1.1
 Flask-Login==0.4.1
 Flask-Migrate==2.5.2
 Flask-SQLAlchemy==2.4.1
+```
 
 2. Create a .env file, which stores the environment variables needed for the application
 

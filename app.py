@@ -47,3 +47,47 @@ class Tags (db.Model):
     id = db.Column(db.Integer, primary_key=True)
     tag = db.Column(db.String(100))
     user_id = db.Column(db.Integer, db.ForeignKey("user.id"))
+    @login.user_loader
+def load_user(id):
+    return User.query.get(int(id))
+
+
+@app.route("/", methods=["POST"])
+def index ():
+    if current_user.is_authenticated:
+        return redirect(url_for("todo"))
+    if request.form:
+        if "login" in request.form:
+            session["form_data"] = ["login"]
+            return redirect(url_for("request_processor"))
+        elif "sign_up" in request.form:
+            session["form_data"] = ["sign_up"]
+            return redirect(url_for("request_processor"))
+        elif "forgot_password" in request.form:
+            session["form_data"] = ["forgot_password"]
+            return redirect(url_for("request_processor"))
+        elif "submit_signup" in request.form:
+            password = generate_password_hash(request.form["password"], "sha256")
+            form_inputs = {"username": request.form["username"],
+                           "password": password,
+                           "password_length": len(request.form["password"]),
+                           "matched_passwords": request.form["password"] == request.form["confirm_password"],
+                           "email": request.form["email"]}
+            session["form_data"] = ["submit_signup", form_inputs]
+            return redirect(url_for("request_processor"))
+        elif "submit_login" in request.form:
+            user = User.query.filter_by(username=request.form["username"]).first()
+            form_inputs = {}
+            if user is None:
+                form_inputs["login"] = False
+            else:
+                if check_password_hash(user.password_hash, request.form["password"]):
+                    login_user(user)
+                    return redirect(url_for("todo"))
+                form_inputs["login"] = False
+            session["form_data"] = ["submit_login", form_inputs]
+            return redirect(url_for("request_processor"))
+        elif "back_to_main" in request.form:
+            return redirect(url_for("index"))
+
+    return render_template("index.html")

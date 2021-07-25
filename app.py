@@ -91,3 +91,71 @@ def index ():
             return redirect(url_for("index"))
 
     return render_template("index.html")
+
+@app.route("/", methods=["GET"])
+def request_processor():
+    if current_user.is_authenticated:
+        return redirect(url_for("todo"))
+    if "form_data" not in session:
+        return render_template("index.html")
+    form_data = session["form_data"]
+    session.pop("form_data")
+    if form_data[0] == "login":
+        return render_template("login.html")
+    elif form_data[0] == "sign_up":
+        return render_template("signup.html")
+    elif form_data[0] == "forgot_password":
+        return render_template("login.html", recovery_password=True)
+    elif form_data[0] == "submit_signup":
+        # Validate inputs
+        # Check username
+        username = form_data[1]["username"]
+        password = form_data[1]["password"]
+        matched_passwords = form_data[1]["matched_passwords"]
+        password_length = form_data[1]["password_length"]
+        email = form_data[1]["email"]
+        if not 1 <= len(username) <= 100:
+            # Length check / Presence check
+            return render_template("signup.html", values=[username, email],
+                                   error_msg="Enter a username not exceeding 100 in length.")
+        else:
+            # Validation check
+            for char in username:
+                # Numbers, upper-case alphabets, lower_case alphabets, -, _
+                curr_char = ord(char)
+                if not (48 <= curr_char <= 57 or 65 <= curr_char <= 90 or 97 <= curr_char <= 122 or
+                        curr_char == 45 or curr_char == 95):
+                    return render_template("signup.html", values=[username, email],
+                                           error_msg="Enter a username consisting of alphanumeric "
+                                                     "characters and dashes.")
+        db_usernames = db.session.query(User.username).all()
+        for name in db_usernames:
+            if name[0] == username:
+                return render_template("signup.html", values=[username, email],
+                                       error_msg="Username is already taken.")
+        # Check email
+        db_email = db.session.query(User.email).all()
+        for mail in db_email:
+            if mail[0] == email:
+                return render_template("signup.html", values=[username, email],
+                                       error_msg="Email is already taken.")
+        # Check password
+        if not matched_passwords:
+            return render_template("signup.html", values=[username, email],
+                                   error_msg="Passwords do not match.")
+        if password_length < 5:
+            return render_template("signup.html", values=[username, email],
+                                   error_msg="Password should be at least 5 characters.")
+        # Passed validation checks, add to database
+        user = User(username=username, email=email,
+                    password_hash=password)
+        db.session.add(user)
+        db.session.commit()
+        login_user(user)
+        return redirect(url_for("todo"))
+    elif form_data[0] == "submit_login":
+        if not form_data[1]["login"]:
+            return render_template("login.html", error_msg="User name or password is incorrect.")
+
+    return render_template("index.html")
+    

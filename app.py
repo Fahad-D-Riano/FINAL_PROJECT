@@ -47,9 +47,10 @@ class Tags (db.Model):
     id = db.Column(db.Integer, primary_key=True)
     tag = db.Column(db.String(100))
     user_id = db.Column(db.Integer, db.ForeignKey("user.id"))
-    @login.user_loader
+
+@login.user_loader
 def load_user(id):
-    return User.query.get(int(id))
+     return User.query.get(int(id))
 
 
 @app.route("/", methods=["POST"])
@@ -213,3 +214,36 @@ def todo():
                              start_date=start_date,
                              due_date=due_date,
                              author=current_user)
+            db.session.add(todo_item)
+            db.session.commit()
+            if len(request.form["todo_tag"]) > 0:
+                todo_tag = request.form["todo_tag"].split(",")
+                count = todo_tag.count("")
+                for x in range (count):
+                    todo_tag.remove("")
+
+                db_tags = Tags.query.filter(Tags.user_id == current_user.id).all()
+                db_tags = [x.tag for x in db_tags]
+                all_tags = []
+                for tag in todo_tag:
+                    add_this_tag = True
+                    for db_tag in db_tags:
+                        if db_tag == tag:
+                            add_this_tag = False
+                            break
+                    if add_this_tag:
+                        all_tags.append(tag)
+
+                for tag in all_tags:
+                    db.session.add(Tags(tag=tag, author=current_user))
+                    db.session.commit()
+            return redirect(url_for("todo"))
+        elif "filter_views" in request.form:
+            session["filter_views"] = request.form["filter_views"]
+            return redirect(url_for("todo"))
+        elif "edit_task_form" in list(request.form.keys()):
+            keys = list(request.form.keys())
+            keys.remove("edit_task_form")
+            char = keys[0].split("_")
+            id = int(char[len(char)-1])
+            task = ToDo.query.filter(ToDo.id == id).first()

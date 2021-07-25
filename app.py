@@ -158,4 +158,9 @@ def request_processor():
             return render_template("login.html", error_msg="User name or password is incorrect.")
 
     return render_template("index.html")
-    
+
+
+@app.route("/logout", methods=["GET", "POST"])
+def logout():
+    logout_user()
+    return redirect(url_for("index"))

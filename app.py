@@ -164,3 +164,52 @@ def request_processor():
 def logout():
     logout_user()
     return redirect(url_for("index"))
+
+@app.route("/todo", methods=["GET", "POST"])
+def todo():
+    if not current_user.is_authenticated:
+        return redirect(url_for("index"))
+
+    if request.form:
+        if "logout" in request.form:
+            return redirect(url_for("logout"))
+        elif "delete_task" in list(request.form.keys())[0]:
+            task = ToDo.query.filter(ToDo.id == int(request.form[list(request.form.keys())[0]])).first()
+            db.session.delete(task)
+            db.session.commit()
+            return redirect(url_for("todo"))
+        elif "completed_task" in list(request.form.keys())[0]:
+            task = ToDo.query.filter(ToDo.id == int(request.form[list(request.form.keys())[0]])).first()
+            task.completed = not task.completed
+            db.session.commit()
+            return redirect(url_for("todo"))
+        elif "delete_tag" in request.form:
+            tag = request.form["delete_tag"]
+
+            db_tags = Tags.query.filter(Tags.user_id == current_user.id).all()
+            for db_tag in db_tags:
+                if tag == db_tag.tag:
+                    db.session.delete(db_tag)
+                    db.session.commit()
+                    return redirect(url_for("todo"))
+            return redirect(url_for("todo"))
+        elif "create_todo" in request.form:
+            # DD/MM/YYYY
+            start_date = None
+            due_date = None
+            if request.form["todo_start_date"]:
+                start_date = request.form["todo_start_date"].split("-")
+                start_date = [int(d) for d in start_date]
+                start_date = datetime(start_date[0], start_date[1], start_date[2])
+
+            if request.form["todo_due_date"]:
+                due_date = request.form["todo_due_date"].split("-")
+                due_date = [int(d) for d in due_date]
+                due_date = datetime(due_date[0], due_date[1], due_date[2])
+
+            todo_item = ToDo(title=request.form["todo_title"],
+                             tag=request.form["todo_tag"],
+                             body=request.form["todo_body"],
+                             start_date=start_date,
+                             due_date=due_date,
+                             author=current_user)

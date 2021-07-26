@@ -335,3 +335,17 @@ def todo():
                         days_left = str(seconds) + " seconds" + (seconds !=1.0)*"s" + " left"
                     else:
                         days_left = ""
+            if start_date:
+               start_date = start_date.strftime("%d/%m/%Y")
+        if due_date:
+            due_date = due_date.strftime("%d/%m/%Y")
+        todo_tag = []
+        if len(user_todo.tag) > 0:
+            todo_tag = user_todo.tag.split(",")
+            count = todo_tag.count("")
+            for x in range(count):
+                todo_tag.remove("")
+        todos.append({"Title": user_todo.title, "Body": user_todo.body,
+                      "Tag": todo_tag, "Start date": start_date,
+                      "Due date": due_date, "Days left": days_left,
+                      "id": user_todo.id, "completed": user_todo.completed})

@@ -247,3 +247,48 @@ def todo():
             char = keys[0].split("_")
             id = int(char[len(char)-1])
             task = ToDo.query.filter(ToDo.id == id).first()
+            # title, body, start_date, due_date
+            for key in keys:
+                if "title" in key:
+                    task.title = request.form[key]
+                elif "body" in key:
+                    task.body = request.form[key]
+                elif "start_date" in key and len(request.form[key]) > 0:
+                    start_date = request.form[key].split("-")
+                    start_date = [int(d) for d in start_date]
+                    start_date = datetime(start_date[0], start_date[1], start_date[2])
+                    task.start_date = start_date
+                elif "due_date" in key and len(request.form[key]) > 0:
+                    due_date = request.form[key].split("-")
+                    due_date = [int(d) for d in due_date]
+                    due_date = datetime(due_date[0], due_date[1], due_date[2])
+                    task.due_date = due_date
+            db.session.commit()
+            return redirect(url_for("todo"))
+
+    user_todos = []
+    if (session and "filter_views" in session and
+        session["filter_views"] != "filter_date_added"):
+        filter_view = session["filter_views"]
+        user_todos = current_user.todo_items.all()
+        # id, title, tag, body, start_date, due_date, completed, user_id
+        if filter_view == "filter_due_date":
+            todos_dated = []
+            todos_dated_dict = {}
+            todos_dated_counter = 0
+            todos_undated = []
+            for todo in user_todos:
+                if todo.due_date:
+                    todos_dated.append((todo.due_date, todos_dated_counter))
+                    todos_dated_dict[todos_dated_counter] = todo
+                    todos_dated_counter += 1
+                else:
+                    todos_undated.append(todo)
+            # Sort by date
+            todos_dated.sort()
+            user_todos = []
+            for todo in todos_dated:
+                user_todos.append(todos_dated_dict[todo[1]])
+            for todo in todos_undated:
+                user_todos.append(todo)
+                

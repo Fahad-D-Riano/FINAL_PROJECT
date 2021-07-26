@@ -349,3 +349,24 @@ def todo():
                       "Tag": todo_tag, "Start date": start_date,
                       "Due date": due_date, "Days left": days_left,
                       "id": user_todo.id, "completed": user_todo.completed})
+        user_tags = current_user.tag_items.all()
+    tags = []
+    for user_tag in user_tags:
+        tags.append(user_tag.tag)
+
+    if session and "filter_views" in session:
+        filter_view = session["filter_views"]
+        session.pop("filter_views")
+        if filter_view == "filter_date_added":
+            filter_view = "Sort by date added"
+        elif filter_view == "filter_due_date":
+            filter_view = "Sort by due date"
+        else:
+            # filter_tags_number
+            filter_view = "Sort by number of tags"
+    else:
+        filter_view = ""
+    return render_template("todo.html", todos=todos, todos_json=json.dumps(todos), tags=tags,
+                            filter_view=filter_view, username=current_user.username)
+
+

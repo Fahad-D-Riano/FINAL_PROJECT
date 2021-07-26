@@ -303,4 +303,35 @@ def todo():
             todos_tag.sort()
             user_todos = []
             for todo in todos_tag:
-                user_todos.append(todos_tag_dict[todo[1]])    
+                user_todos.append(todos_tag_dict[todo[1]])  
+    else:
+        user_todos = current_user.todo_items.all()
+
+    todos = []
+    for user_todo in user_todos:
+        start_date = user_todo.start_date
+        due_date = user_todo.due_date
+        days_left = ""
+        if start_date and due_date:
+            today_date = datetime.now()
+            if start_date <= today_date <= due_date:
+                days_left = due_date-today_date
+                if "days" in str(days_left) or "day" in str(days_left):
+                    days_left = str(days_left)
+                    days_left = days_left[:days_left.find(",")] + " left"
+                else:
+                    days_left = str(days_left)
+                    days_left = days_left.split(":")
+                    days_left = [float(x) for x in days_left]
+                    hours = days_left[0]
+                    minutes = days_left[1]
+                    seconds = days_left[2]
+
+                    if hours != 0.0:
+                        days_left = str(hours) + " hour" + (hours != 1.0)*"s" + " left"
+                    elif minutes != 0.0:
+                        days_left = str(minutes) + " minutes" + (minutes !=1.0)*"s" + " left"
+                    elif seconds != 0.0:
+                        days_left = str(seconds) + " seconds" + (seconds !=1.0)*"s" + " left"
+                    else:
+                        days_left = ""

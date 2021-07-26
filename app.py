@@ -369,4 +369,5 @@ def todo():
     return render_template("todo.html", todos=todos, todos_json=json.dumps(todos), tags=tags,
                             filter_view=filter_view, username=current_user.username)
 
-
+if __name__ == "__main__":
+    app.run(debug=True)

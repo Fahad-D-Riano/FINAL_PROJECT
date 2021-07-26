@@ -291,4 +291,16 @@ def todo():
                 user_todos.append(todos_dated_dict[todo[1]])
             for todo in todos_undated:
                 user_todos.append(todo)
-                
+        else:
+            # filter_tags_number
+            todos_tag = []
+            todos_tag_counter = 0
+            todos_tag_dict = {}
+            for todo in user_todos:
+                todos_tag.append((todo.tag.count(","), todos_tag_counter))
+                todos_tag_dict[todos_tag_counter] = todo
+                todos_tag_counter += 1
+            todos_tag.sort()
+            user_todos = []
+            for todo in todos_tag:
+                user_todos.append(todos_tag_dict[todo[1]])    

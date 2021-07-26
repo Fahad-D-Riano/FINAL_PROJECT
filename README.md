@@ -23,3 +23,10 @@ Werkzeug==0.16.0
 1. Flask
 2. HTML/CSS (Bootstrap) /JS
 3. sqlite3
+
+3. To Run 
+
+```
+python app.py
+
+```

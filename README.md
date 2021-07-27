@@ -15,6 +15,7 @@ Flask-SQLAlchemy==2.4.1
 python-dotenv==0.10.3
 SQLAlchemy==1.3.11
 Werkzeug==0.16.0
+python-dateutil==2.8.2
 ```
 
 2. Create a .env file, which stores the environment variables needed for the application
